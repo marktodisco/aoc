@@ -59,48 +59,89 @@ let parse_game_id (line : string) : int =
   int_of_string id
 ;;
 
+let extract_game_text line =
+  (* " 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green" *)
+  match String.split line ~on:':' with
+  | [ _; right ] -> right (* "3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green" *)
+  | _ -> failwith "Could not split line on ':'"
+;;
+
+let split_game_text_into_rounds_text game_text =
+  (* [ " 3 blue, 4 red"; "1 red, 2 green, 6 blue"; "2 green" ] *)
+  match String.split game_text ~on:';' with
+  | [] -> failwith "This game had zero sets"
+  | sets -> List.map sets ~f:String.strip
+;;
+
+let split_round_text_game_sets game_sets_text =
+  List.map game_sets_text ~f:(fun x -> String.split x ~on:',' |> List.map ~f:String.strip)
+;;
+
+let parse_color_count roll_text =
+  match String.split roll_text ~on:' ' with
+  | [ count; color ] -> int_of_string count, color
+  | _ -> failwith "Invalid count and color"
+;;
+
+let rec create_cube_count (rolls : (int * string) list) init : cube_count =
+  print_endline ("rolls length: " ^ string_of_int (List.length rolls));
+  match rolls with
+  | [] -> init
+  | (count, color) :: [] -> update_color init color count
+  | (count, color) :: rolls_subset ->
+    create_cube_count rolls_subset (update_color init color count)
+;;
+
+(* let parse_rounds_into_cube_colors (games : string list list) : cube_count list list =
+   (* List.map ~f:(List.map ~f:(fun s -> s ^ "!")) games *)
+   List.map ~f:(fun game -> List.map game ~f:(fun roll -> parse_color_count roll)) games
+   ;; *)
+
 (* let parse_game_sets (line : string) : (int * int * int) list = *)
 let parse_game (line : string) : string list =
   (* Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green *)
-  let game_text =
-    match String.split line ~on:':' with
-    | [ _; right ] -> right
-    | _ -> failwith "Could not split line on ':'"
+  (* [ { red = 0; green = 0; blue = 3; }; ...] *)
+  let x =
+    create_cube_count [ 1, "red"; 2, "blue"; 3, "green" ] { red = 0; green = 0; blue = 0 }
   in
-  print_endline ("game_text: " ^ game_text);
-  let game_sets =
-    match String.split game_text ~on:';' with
-    | [] -> failwith "This game had zero sets"
-    | sets -> sets
+  print_rbg x;
+  let game_text = extract_game_text line in
+  let game_sets_text = split_game_text_into_rounds_text game_text in
+  let _ = split_round_text_game_sets game_sets_text in
+  let _ =
+    line
+    |> extract_game_text (* "3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green" *)
+    |> split_game_text_into_rounds_text
+       (* [ "3 blue, 4 red"; "1 red, 2 green, 6 blue"; "2 green" ] *)
+    |> split_round_text_game_sets
+    (* [ ["3 blue"; "4 red"]; ["1 red"; "2 green"; "6 blue"]; ["2 green"] ] *)
+    (* |> parse_rounds_into_cube_colors *)
   in
-  printf "text = %s\n" game_text;
+  (* let (games : cube_count list list) =
+     List.map game_sets ~f:(fun game_set -> List.map (String.split game_set ~on:','))
+     in *)
+  (* need to start a iteration here *)
   let game_text =
-    (match List.nth game_sets 0 with
+    (match List.nth game_sets_text 0 with
      | Some x -> x
      | None -> failwith "No games")
     |> String.strip
   in
   let rolls = List.map (String.split game_text ~on:',') ~f:String.strip in
-  List.iter rolls ~f:print_endline;
   let roll =
     match List.nth rolls 0 with
     | Some x -> x
     | None -> failwith "No rolls"
   in
-  print_endline ("roll: " ^ roll);
-  let count, color =
-    match String.split roll ~on:' ' with
-    | [ count; color ] -> int_of_string count, color
-    | _ -> failwith "Invalid count and color"
-  in
+  let count, color = parse_color_count roll in
   let cubes : cube_count = { red = 0; green = 0; blue = 0 } in
-  print_rbg cubes;
   let cubes = update_color cubes color count in
+  (*  *)
+  print_endline ("game_text: " ^ game_text);
+  print_endline ("roll: " ^ roll);
   print_rbg cubes;
-  printf "%s: " color;
-  printf "%i\n" count;
-  (* let games = List.map game_sets ~f:(fun x -> String.split x ~on:',') in *)
-  game_sets
+  (*  *)
+  game_sets_text
 ;;
 
 let () =
@@ -112,6 +153,7 @@ let () =
     | None -> raise (No_lines "No lines found in source")
   in
   let game_id = parse_game_id line in
+  (* games : (cube_color list) list *)
   let _ = parse_game line in
   printf "==========\n";
   printf "game_id = %i\n" game_id;
