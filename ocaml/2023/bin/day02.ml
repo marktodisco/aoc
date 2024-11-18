@@ -17,6 +17,15 @@ let update_color cubes color count =
   | _ -> failwith "Invalid color"
 ;;
 
+let rec create_cube_count (rolls : (int * string) list) init : cube_count =
+  print_endline ("rolls length: " ^ string_of_int (List.length rolls));
+  match rolls with
+  | [] -> init
+  | (count, color) :: [] -> update_color init color count
+  | (count, color) :: rolls_subset ->
+    create_cube_count rolls_subset (update_color init color count)
+;;
+
 let print_rbg rbg =
   Printf.printf "{ red = %i; green = %i; blue = %i; }\n" rbg.red rbg.green rbg.blue
 ;;
@@ -83,28 +92,35 @@ let parse_color_count roll_text =
   | _ -> failwith "Invalid count and color"
 ;;
 
-let rec create_cube_count (rolls : (int * string) list) init : cube_count =
-  print_endline ("rolls length: " ^ string_of_int (List.length rolls));
-  match rolls with
-  | [] -> init
-  | (count, color) :: [] -> update_color init color count
-  | (count, color) :: rolls_subset ->
-    create_cube_count rolls_subset (update_color init color count)
+let parse_rounds_into_cube_colors (raw_games : string list list) : cube_count list =
+  (* let x = List.map ~f:(List.map ~f:(fun s -> s ^ "!")) raw_games in *)
+  let color_counts = List.map ~f:(List.map ~f:parse_color_count) raw_games in
+  let init_count = { red = 0; green = 0; blue = 0 } in
+  let cube_counts =
+    List.map ~f:(fun counts -> create_cube_count counts init_count) color_counts
+  in
+  cube_counts
 ;;
 
-(* let parse_rounds_into_cube_colors (games : string list list) : cube_count list list =
-   (* List.map ~f:(List.map ~f:(fun s -> s ^ "!")) games *)
-   List.map ~f:(fun game -> List.map game ~f:(fun roll -> parse_color_count roll)) games
-   ;; *)
+(* let mapper games = List.map ~f:(fun game -> parse_color_count) *)
+(* let from_string_to_count s : string = parse_color_count s in *)
+(* let games_as_strings =
+    List.map
+      ~f:(fun game -> List.map ~f:(fun game_set -> parse_color_count game_set) game)
+      raw_games
+  in
+  let init_counts = { red = 0; green = 0; blue = 0 } in
+  let games_as_rolls =
+    List.map ~f:(fun rolls -> create_cube_count games_as_strings init_counts)
+  in
+  games_as_rolls *)
 
 (* let parse_game_sets (line : string) : (int * int * int) list = *)
 let parse_game (line : string) : string list =
   (* Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green *)
   (* [ { red = 0; green = 0; blue = 3; }; ...] *)
-  let x =
-    create_cube_count [ 1, "red"; 2, "blue"; 3, "green" ] { red = 0; green = 0; blue = 0 }
-  in
-  print_rbg x;
+  create_cube_count [ 1, "red"; 10, "green"; -1, "blue" ] { red = 0; green = 0; blue = 0 }
+  |> print_rbg;
   let game_text = extract_game_text line in
   let game_sets_text = split_game_text_into_rounds_text game_text in
   let _ = split_round_text_game_sets game_sets_text in
@@ -115,7 +131,7 @@ let parse_game (line : string) : string list =
        (* [ "3 blue, 4 red"; "1 red, 2 green, 6 blue"; "2 green" ] *)
     |> split_round_text_game_sets
     (* [ ["3 blue"; "4 red"]; ["1 red"; "2 green"; "6 blue"]; ["2 green"] ] *)
-    (* |> parse_rounds_into_cube_colors *)
+    |> parse_rounds_into_cube_colors
   in
   (* let (games : cube_count list list) =
      List.map game_sets ~f:(fun game_set -> List.map (String.split game_set ~on:','))
