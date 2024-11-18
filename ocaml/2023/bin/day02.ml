@@ -31,6 +31,19 @@ let print_cube_color rbg =
   printf "{ red = %i; green = %i; blue = %i; }\n" rbg.red rbg.green rbg.blue
 ;;
 
+let minimum_cube_set (counts : cube_count list) : cube_count =
+  let init = { red = 0; green = 0; blue = 0 } in
+  List.fold counts ~init ~f:(fun acc count ->
+    { red = max acc.red count.red
+    ; green = max acc.green count.green
+    ; blue = max acc.blue count.blue
+    })
+;;
+
+let calculate_game_power minimum_cube_set =
+  minimum_cube_set.red * minimum_cube_set.green * minimum_cube_set.blue
+;;
+
 let read_lines (path : string) : string list =
   let ic = In_channel.create path in
   let contents = In_channel.input_lines ic in
@@ -126,18 +139,25 @@ let is_game_possible (game : cube_count list) : bool =
 let () =
   print_endline "";
   let lines = read_lines "data/day02/part1-full.txt" in
-  let total_id =
-    List.fold lines ~init:0 ~f:(fun acc line ->
+  let total_id, total_power =
+    List.fold lines ~init:(0, 0) ~f:(fun (acc_id, acc_power) line ->
       let game_id = parse_game_id line in
       let game = parse_game line in
       let valid = is_game_possible game in
+      let min_cube_set = minimum_cube_set game in
+      let power = calculate_game_power min_cube_set in
       printf "==========\n";
       printf "line: %s\n" line;
       printf "game_id = %i\n" game_id;
       printf "valid = %b\n" valid;
       List.iter ~f:print_cube_color game;
+      printf "min_cube_set: ";
+      print_cube_color min_cube_set;
+      printf "power: %i\n" power;
       printf "==========\n\n";
-      if valid then acc + game_id else acc)
+      let next_acc_id = if valid then acc_id + game_id else acc_id in
+      next_acc_id, acc_power + power)
   in
-  printf "total_id: %i\n\n" total_id
+  printf "total_id: %i\n" total_id;
+  printf "total_power: %i\n\n" total_power
 ;;
