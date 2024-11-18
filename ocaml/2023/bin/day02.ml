@@ -1,49 +1,6 @@
 open Core
 open Printf
 
-type cube_count =
-  { red : int
-  ; green : int
-  ; blue : int
-  }
-
-let max_red = 12
-let max_green = 13
-let max_blue = 14
-
-let update_color cubes color count =
-  match color with
-  | "red" -> { cubes with red = count }
-  | "green" -> { cubes with green = count }
-  | "blue" -> { cubes with blue = count }
-  | _ -> failwith "Invalid color"
-;;
-
-let rec create_cube_count (rolls : (int * string) list) init : cube_count =
-  match rolls with
-  | [] -> init
-  | (count, color) :: [] -> update_color init color count
-  | (count, color) :: rolls_subset ->
-    create_cube_count rolls_subset (update_color init color count)
-;;
-
-let print_cube_color rbg =
-  printf "{ red = %i; green = %i; blue = %i; }\n" rbg.red rbg.green rbg.blue
-;;
-
-let minimum_cube_set (counts : cube_count list) : cube_count =
-  let init = { red = 0; green = 0; blue = 0 } in
-  List.fold counts ~init ~f:(fun acc count ->
-    { red = max acc.red count.red
-    ; green = max acc.green count.green
-    ; blue = max acc.blue count.blue
-    })
-;;
-
-let calculate_game_power minimum_cube_set =
-  minimum_cube_set.red * minimum_cube_set.green * minimum_cube_set.blue
-;;
-
 let read_lines (path : string) : string list =
   let ic = In_channel.create path in
   let contents = In_channel.input_lines ic in
@@ -62,6 +19,49 @@ let find_substring (src : string) (sub : string) : (int * int) option =
     else aux (i + 1)
   in
   aux 0
+;;
+
+let max_red = 12
+let max_green = 13
+let max_blue = 14
+
+type cube_set =
+  { red : int
+  ; green : int
+  ; blue : int
+  }
+
+let print_cube_set rbg =
+  printf "{ red = %i; green = %i; blue = %i; }\n" rbg.red rbg.green rbg.blue
+;;
+
+let update_cube_set cs color count =
+  match color with
+  | "red" -> { cs with red = count }
+  | "green" -> { cs with green = count }
+  | "blue" -> { cs with blue = count }
+  | _ -> failwith "Invalid color"
+;;
+
+let rec create_cube_set (rolls : (int * string) list) (init : cube_set) =
+  match rolls with
+  | [] -> init
+  | (count, color) :: [] -> update_cube_set init color count
+  | (count, color) :: rolls_subset ->
+    create_cube_set rolls_subset (update_cube_set init color count)
+;;
+
+let minimum_cube_set (counts : cube_set list) : cube_set =
+  let init = { red = 0; green = 0; blue = 0 } in
+  List.fold counts ~init ~f:(fun acc count ->
+    { red = max acc.red count.red
+    ; green = max acc.green count.green
+    ; blue = max acc.blue count.blue
+    })
+;;
+
+let calculate_game_power minimum_cube_set =
+  minimum_cube_set.red * minimum_cube_set.green * minimum_cube_set.blue
 ;;
 
 let parse_game_id (line : string) : int =
@@ -105,12 +105,12 @@ let parse_color_count roll_text =
   | _ -> failwith "Invalid count and color"
 ;;
 
-let parse_rounds_into_cube_colors (raw_games : string list list) : cube_count list =
+let parse_rounds_into_cube_colors (raw_games : string list list) : cube_set list =
   (* let x = List.map ~f:(List.map ~f:(fun s -> s ^ "!")) raw_games in *)
   let color_counts = List.map ~f:(List.map ~f:parse_color_count) raw_games in
   let init_count = { red = 0; green = 0; blue = 0 } in
   let cube_counts =
-    List.map ~f:(fun counts -> create_cube_count counts init_count) color_counts
+    List.map ~f:(fun counts -> create_cube_set counts init_count) color_counts
   in
   cube_counts
 ;;
@@ -129,7 +129,7 @@ let parse_game (line : string) =
   |> parse_rounds_into_cube_colors
 ;;
 
-let is_game_possible (game : cube_count list) : bool =
+let is_game_possible (game : cube_set list) : bool =
   List.for_all
     ~f:(fun count ->
       count.red <= max_red && count.green <= max_green && count.blue <= max_blue)
@@ -150,9 +150,9 @@ let () =
       printf "line: %s\n" line;
       printf "game_id = %i\n" game_id;
       printf "valid = %b\n" valid;
-      List.iter ~f:print_cube_color game;
+      List.iter ~f:print_cube_set game;
       printf "min_cube_set: ";
-      print_cube_color min_cube_set;
+      print_cube_set min_cube_set;
       printf "power: %i\n" power;
       printf "==========\n\n";
       let next_acc_id = if valid then acc_id + game_id else acc_id in
