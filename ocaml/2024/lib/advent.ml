@@ -12,3 +12,5 @@ let print_list (items : string list) =
   List.iter items ~f:(fun s -> print_string ("\"" ^ s ^ "\"" ^ " ; "));
   print_string " ]"
 ;;
+
+let print_hashtbl h = Stdlib.Hashtbl.iter (fun k v -> printf "%i => %i\n" k v) h

@@ -32,7 +32,7 @@ let zip (left, right) =
 
 let calculate_distance (x, y) = abs (x - y)
 
-let () =
+let solve_part1 =
   let distance =
     (* "./data/d1p1-test.txt" *)
     "./data/d1p1.txt"
@@ -44,6 +44,51 @@ let () =
     |> List.fold ~init:0 ~f:( + )
   in
   print_endline "\n";
+  print_endline "Part 1:";
+  print_endline "-------";
   printf "distance: %i\n" distance;
+  print_endline ""
+;;
+
+let count_items left right =
+  let h = Stdlib.Hashtbl.create 1000 in
+  (* initialize *)
+  List.iter left ~f:(fun l ->
+    match Stdlib.Hashtbl.find_opt h l with
+    | Some _ -> ()
+    | None -> Stdlib.Hashtbl.add h l 0);
+  (* count *)
+  List.iter right ~f:(fun r ->
+    match Stdlib.Hashtbl.find_opt h r with
+    | None -> ()
+    | Some c -> Stdlib.Hashtbl.replace h r (c + 1));
+  h
+;;
+
+let calculate_similarity (left : int list) count =
+  List.fold left ~init:0 ~f:(fun acc k ->
+    match Stdlib.Hashtbl.find_opt count k with
+    | None -> acc
+    | Some v -> acc + (k * v))
+;;
+
+let solve_part2 =
+  let left, right =
+    "./data/d1p1.txt"
+    (* "./data/d1p1-test.txt" *)
+    |> Advent.read_lines
+    |> List.map ~f:pair_from_line
+    |> pairs_to_lists
+  in
+  let count = count_items left right in
+  let similarity = calculate_similarity left count in
+  print_endline "Part 2:";
+  print_endline "-------";
+  printf "similarity: %i\n" similarity;
   print_endline "\n"
+;;
+
+let () =
+  solve_part1;
+  solve_part2
 ;;
