@@ -13,9 +13,30 @@ let diff (nums : int list) =
   inner [] nums
 ;;
 
-let is_increasing diffs = List.for_all (fun x -> x > 0) diffs
-let is_decreasing diffs = List.for_all (fun x -> x < 0) diffs
-let is_gradual diffs = diffs |> List.map abs |> List.for_all (fun x -> x <= 3)
+let is_increasing diffs =
+  let valid = List.filter (fun x -> x > 0) diffs in
+  let num_invalid = List.length diffs - List.length valid in
+  match num_invalid with
+  | n when n < 0 -> failwith "Cannot be negative"
+  | n -> n <= 0
+;;
+
+let is_decreasing diffs =
+  let valid = List.filter (fun x -> x < 0) diffs in
+  let num_invalid = List.length diffs - List.length valid in
+  match num_invalid with
+  | n when n < 0 -> failwith "Cannot be negative"
+  | n -> n <= 0
+;;
+
+let is_gradual ?(spike = 3) diffs =
+  let valid = List.filter (fun x -> x <= spike) (List.map abs diffs) in
+  let num_invalid = List.length diffs - List.length valid in
+  match num_invalid with
+  | n when n < 0 -> failwith "Cannot be negative"
+  | n -> n <= 0
+;;
+
 let xor a b = (a || b) && not (a && b)
 
 let is_safe (report : int list) =
@@ -23,13 +44,24 @@ let is_safe (report : int list) =
   xor (is_increasing diffs) (is_decreasing diffs) && is_gradual diffs
 ;;
 
+let all_safe report =
+  let is_default_safe = is_safe report in
+  let reports' = List.mapi (fun i _ -> Advent.dropi report i) report in
+  let is_dropped_safe = List.map is_safe reports' in
+  is_default_safe || List.exists Fun.id is_dropped_safe
+;;
+
 let () =
   let reports = "./data/d2.txt" |> Advent.read_lines |> parse_reports in
-  let num_safe = reports |> List.filter is_safe |> List.length in
+  let safe = reports |> List.filter all_safe in
+  let num_safe = safe |> List.length in
   print_endline "\n";
   print_endline "Part1:";
   print_endline "------";
-  (* List.iter (Advent.print_list Advent.int_printer) reports; *)
-  printf "Safe: %i\n" num_safe;
+  (* List.iter (fun r -> Advent.print_list Advent.int_printer r) reports;
+     print_endline "";
+     List.iter (fun r -> Advent.print_list Advent.int_printer r) safe; *)
+  printf "\nSafe: %i\n" num_safe;
   print_endline ""
-;;
+in
+print_endline "\n"
