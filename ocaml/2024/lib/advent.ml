@@ -15,7 +15,7 @@ let print_list printer lst =
       if i > 0 then printf "; ";
       printer x)
     lst;
-  printf "]\n"
+  printf "]"
 ;;
 
 let int_printer = printf "%d"
