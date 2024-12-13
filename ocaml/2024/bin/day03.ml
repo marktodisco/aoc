@@ -1,34 +1,20 @@
 open Printf
 
-let get_matches (pattern : string) (text : string) =
-  let regex = Str.regexp pattern in
-  let rec aux pos acc =
-    try
-      let start = Str.search_forward regex text pos in
-      let group = Str.matched_group 1 text in
-      aux (start + 1) (group :: acc)
-    with
-    | Not_found -> List.rev acc
-  in
-  aux 0 []
-;;
-
-let product nums = List.fold_left Int.mul 1 nums
-
 let () =
+  (* let lines = [ "mul(1,2)mul[3,4]don't()mul(6,7)do()mul(100,1000)" ] in *)
   let lines = "./data/d3.txt" |> Advent.read_lines in
-  (* let lines =
-    [ "mul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(0,1,1)+mul(32,64]then(mul(11,8)mul(8,5))"
-    ]
-  in *)
-  let pattern = {|mul(\([0-9]+\(,[0-9]+\)*\))|} in
-  let matches = lines |> List.map (get_matches pattern) |> List.flatten in
-  let numbers =
-    matches
+  let matches = lines |> List.map Advent.extract_groups |> List.flatten in
+  let valid_matches = matches |> Advent.filter_mul_groups in
+  let total =
+    valid_matches
     |> List.map (String.split_on_char ',')
     |> List.map (fun xs -> List.map int_of_string xs)
-    |> List.map product
+    |> List.map Advent.product
     |> List.fold_left ( + ) 0
   in
-  printf "\nmul: %i\n" numbers
+  printf "\nmul: %i\n" total;
+  printf "%s" "\n";
+  (* Advent.print_list Advent.string_printer matches; *)
+  (* Advent.print_list Advent.string_printer valid_matches; *)
+  printf "%s" "\n"
 ;;

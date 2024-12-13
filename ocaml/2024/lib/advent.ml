@@ -1,9 +1,8 @@
-open Core
 open Printf
 
 let read_lines (path : string) : string list =
-  let ic = In_channel.create path in
-  let contents = In_channel.input_lines ic in
+  let ic = Core.In_channel.create path in
+  let contents = Core.In_channel.input_lines ic in
   In_channel.close ic;
   contents
 ;;
@@ -11,7 +10,7 @@ let read_lines (path : string) : string list =
 let print_list ?(prefix = "") ?(postfix = "\n") printer lst =
   printf "%s" prefix;
   printf "[";
-  List.iteri
+  Core.List.iteri
     ~f:(fun i x ->
       if i > 0 then printf "; ";
       printer x)
@@ -27,5 +26,37 @@ let print_hashtbl h = Stdlib.Hashtbl.iter (fun k v -> printf "%i => %i\n" k v) h
 
 let dropi items i =
   if i < 0 || i >= List.length items then failwith ("invalid index: " ^ string_of_int i);
-  List.filteri ~f:(fun i' _ -> i' <> i) items
+  Core.List.filteri ~f:(fun i' _ -> i' <> i) items
 ;;
+
+let extract_groups text =
+  let mul_pattern =
+    Re.seq
+      [ Re.str "mul("
+      ; Re.group (Re.seq [ Re.rep1 Re.digit; Re.str ","; Re.rep1 Re.digit ])
+      ; Re.str ")"
+      ]
+  in
+  let do_pattern = Re.group (Re.str "do()") in
+  let dont_pattern = Re.group (Re.str "don't()") in
+  let regex = Re.compile (Re.alt [ mul_pattern; do_pattern; dont_pattern ]) in
+  let matches = Re.all regex text in
+  List.map
+    (fun g ->
+      Re.Group.all g |> Array.to_list |> List.filteri (fun i s -> i > 0 && s <> ""))
+    matches
+  |> List.flatten
+;;
+
+let filter_mul_groups groups =
+  let rec aux enabled groups' acc =
+    match groups' with
+    | "do()" :: tail -> aux true tail acc
+    | "don't()" :: tail -> aux false tail acc
+    | g :: tail -> aux enabled tail (if enabled then g :: acc else acc)
+    | [] -> acc
+  in
+  List.rev (aux true groups [])
+;;
+
+let product nums = List.fold_left Int.mul 1 nums
