@@ -70,31 +70,35 @@ let is_valid_block (block : string option) i j =
         acc || String.( = ) x case)
     in
     let _, _ = i, j in
-    (* Printf.printf "(%i, %i): %s\n" i j (if v then x ^ " *" else x); *)
+    Printf.printf "\n(%i, %i): %s\n" i j (if v then x ^ " *" else x);
     v
 ;;
 
 let count puzzle =
   let nr = Array.length puzzle in
   let nc = Array.length puzzle.(0) in
-  let n = ref 0 in
-  for i = 0 to nr - 1 do
-    for j = 0 to nc - 1 do
-      let block = get_3x3 puzzle i j in
-      if is_valid_block block i j then n := !n + 1
-    done
-  done;
-  !n
+  let rec count' i j n =
+    match i, j with
+    | i', _ when i' = nr -> n
+    | i', j' when j' = nc ->
+      let block = get_3x3 puzzle i' j' in
+      let inc = is_valid_block block i' j' |> Advent.int_of_bool in
+      count' (i' + 1) 0 (n + inc)
+    | i', j' ->
+      let block = get_3x3 puzzle i' j' in
+      let inc = is_valid_block block i' j' |> Advent.int_of_bool in
+      count' i' (j' + 1) (n + inc)
+  in
+  count' 0 0 0
 ;;
 
 let () =
   let data =
-    "./data/day4.txt" |> Advent.IO.read_lines |> List.map ~f:Advent.list_of_string
+    "./data/day4-test.txt" |> Advent.IO.read_lines |> List.map ~f:Advent.list_of_string
   in
   let puzzle = data |> Core.List.map ~f:Array.of_list |> Array.of_list in
-  (* Printf.printf "\npuzzle: %s\n" ""; *)
-  (* List.iter ~f:(Advent.IO.print_list Advent.IO.string_printer ~prefix:"") data; *)
+  Printf.printf "\npuzzle: %s\n" "";
+  List.iter ~f:(Advent.IO.print_list Advent.IO.string_printer ~prefix:"") data;
   let count = count puzzle in
-  Printf.printf "\ncount: %i\n" count;
-  ()
+  Printf.printf "\ncount: %i\n" count
 ;;
