@@ -23,15 +23,20 @@ module IO = struct
   let int_printer = printf "%d"
   let bool_printer = printf "%b"
   let string_printer = printf "\"%s\""
+  let char_printer = printf "'%c'"
   let print_hashtbl h = Stdlib.Hashtbl.iter (fun k v -> printf "%i => %i\n" k v) h
 end
 
-module List = struct
-  let dropi items i =
-    if i < 0 || i >= List.length items then failwith ("invalid index: " ^ string_of_int i);
-    Core.List.filteri ~f:(fun i' _ -> i' <> i) items
-  ;;
-end
+let dropi items i =
+  if i < 0 || i >= List.length items then failwith ("invalid index: " ^ string_of_int i);
+  Core.List.filteri ~f:(fun i' _ -> i' <> i) items
+;;
+
+let list_of_string s =
+  List.init (String.length s) (String.get s) |> List.map (String.make 1)
+;;
+
+let int_of_bool b = if b then 1 else 0
 
 module Regex = struct
   open Stdlib
