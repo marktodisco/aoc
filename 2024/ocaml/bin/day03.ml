@@ -2,7 +2,7 @@ open Printf
 
 let () =
   (* let lines = [ "mul(1,2)mul[3,4]don't()mul(6,7)do()mul(100,1000)" ] in *)
-  let lines = "./data/d3.txt" |> Advent.IO.read_lines in
+  let lines = "../data/d3.txt" |> Advent.IO.read_lines in
   let matches = lines |> List.map Advent.Regex.extract_groups |> List.flatten in
   let valid_matches = matches |> Advent.Regex.filter_mul_groups in
   let total =

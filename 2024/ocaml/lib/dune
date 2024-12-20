@@ -1,0 +1,6 @@
+(include_subdirs qualified)
+
+(library
+ (name advent)
+ (public_name advent)
+ (libraries core re))

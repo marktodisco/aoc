@@ -49,16 +49,12 @@ let update (graph : (int, node) Hashtbl.t) (rules : (int * int) list) =
     | (before, after) :: tail ->
       let before_node =
         match Hashtbl.find graph before with
-        | exception Not_found ->
-          Printf.printf "Not_found before: %i\n" before;
-          { default_node with after = [ after ] }
+        | exception Not_found -> { default_node with after = [ after ] }
         | node -> { node with after = after :: node.after }
       in
       let after_node =
         match Hashtbl.find graph after with
-        | exception Not_found ->
-          Printf.printf "Not_found after: %i\n" after;
-          { default_node with before = [ before ] }
+        | exception Not_found -> { default_node with before = [ before ] }
         | node -> { node with before = before :: node.before }
       in
       Hashtbl.replace graph before before_node;
@@ -68,9 +64,22 @@ let update (graph : (int, node) Hashtbl.t) (rules : (int * int) list) =
   update' rules
 ;;
 
+let print_graph graph =
+  Hashtbl.iter (fun k v -> (Printf.printf "%i => %s\n") k (string_node v)) graph
+;;
+
 let build_graph rules =
   let graph : (int, node) Hashtbl.t = Hashtbl.create 14000 in
   update graph rules;
   Hashtbl.iter (fun k v -> (Printf.printf "%i => %s\n") k (string_node v)) graph;
   graph
 ;;
+
+(* let check graph updates =
+  let rec check' updates' is_valid =
+    match updates' with
+    | [] -> is_valid
+    | pages :: tail -> 
+      let rec check_pages 
+
+  check' updates false *)

@@ -94,7 +94,7 @@ let count puzzle =
 
 let () =
   let data =
-    "./data/day4-test.txt" |> Advent.IO.read_lines |> List.map ~f:Advent.list_of_string
+    "../data/day4.txt" |> Advent.IO.read_lines |> List.map ~f:Advent.list_of_string
   in
   let puzzle = data |> Core.List.map ~f:Array.of_list |> Array.of_list in
   Printf.printf "\npuzzle: %s\n" "";

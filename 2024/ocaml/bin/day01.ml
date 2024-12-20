@@ -34,9 +34,9 @@ let calculate_distance (x, y) = abs (x - y)
 
 let solve_part1 =
   let distance =
-    (* "./data/d1p1-test.txt" *)
-    "./data/d1p1.txt"
-    |> Advent.read_lines
+    (* "../data/d1-test.txt" *)
+    "../data/d1.txt"
+    |> Advent.IO.read_lines
     |> List.map ~f:pair_from_line
     |> pairs_to_lists
     |> zip
@@ -74,9 +74,9 @@ let calculate_similarity (left : int list) count =
 
 let solve_part2 =
   let left, right =
-    "./data/d1p1.txt"
-    (* "./data/d1p1-test.txt" *)
-    |> Advent.read_lines
+    (* "../data/d1-test.txt" *)
+    "../data/d1.txt"
+    |> Advent.IO.read_lines
     |> List.map ~f:pair_from_line
     |> pairs_to_lists
   in

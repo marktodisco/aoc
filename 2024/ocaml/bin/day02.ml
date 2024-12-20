@@ -52,7 +52,7 @@ let all_safe report =
 ;;
 
 let () =
-  let reports = "./data/d2.txt" |> Advent.read_lines |> parse_reports in
+  let reports = "../data/d2.txt" |> Advent.IO.read_lines |> parse_reports in
   let safe = reports |> List.filter all_safe in
   let num_safe = safe |> List.length in
   print_endline "\n";

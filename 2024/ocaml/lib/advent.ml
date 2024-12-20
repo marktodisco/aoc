@@ -1,4 +1,5 @@
 open Printf
+module Day05 = Day05
 
 module IO = struct
   let read_lines (path : string) : string list =
