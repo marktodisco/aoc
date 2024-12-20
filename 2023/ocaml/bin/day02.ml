@@ -138,7 +138,7 @@ let is_game_possible (game : cube_set list) : bool =
 
 let () =
   print_endline "";
-  let lines = read_lines "../data/day02-part1-full.txt" in
+  let lines = read_lines "../data/day02.txt" in
   let total_id, total_power =
     List.fold lines ~init:(0, 0) ~f:(fun (acc_id, acc_power) line ->
       let game_id = parse_game_id line in
